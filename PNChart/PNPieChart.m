@@ -60,14 +60,8 @@
 
 - (void)baseInit{
     _selectedItems = [NSMutableDictionary dictionary];
-    //在绘制圆形时,应当考虑矩形的宽和高的大小问题,当宽大于高时,绘制饼图时,会超出整个view的范围,因此建议在此处进行判断
-    
-    CGFloat minimal = (CGRectGetWidth(self.bounds) < CGRectGetHeight(self.bounds)) ? CGRectGetWidth(self.bounds) : CGRectGetHeight(self.bounds);
-    
-    _outerCircleRadius  = minimal / 2;
-    _innerCircleRadius  = minimal / 6;
-//    _outerCircleRadius  = CGRectGetWidth(self.bounds) / 2;
-//    _innerCircleRadius  = CGRectGetWidth(self.bounds) / 6;
+    _outerCircleRadius  = CGRectGetWidth(self.bounds) / 2;
+    _innerCircleRadius  = CGRectGetWidth(self.bounds) / 6;
     _descriptionTextColor = [UIColor whiteColor];
     _descriptionTextFont  = [UIFont fontWithName:@"Avenir-Medium" size:18.0];
     _descriptionTextShadowColor  = [[UIColor blackColor] colorWithAlphaComponent:0.4];
@@ -102,16 +96,13 @@
     
     _pieLayer = [CAShapeLayer layer];
     [_contentView.layer addSublayer:_pieLayer];
-
+    
 }
 
 /** Override this to change how inner attributes are computed. **/
 - (void)recompute {
-    
-    //同理
-    CGFloat minimal = (CGRectGetWidth(self.bounds) < CGRectGetHeight(self.bounds)) ? CGRectGetWidth(self.bounds) : CGRectGetHeight(self.bounds);
-    self.outerCircleRadius = minimal / 2;
-    self.innerCircleRadius = minimal / 6;
+    self.outerCircleRadius = CGRectGetWidth(self.bounds) / 2;
+    self.innerCircleRadius = CGRectGetWidth(self.bounds) / 6;
 }
 
 #pragma mark -
@@ -293,6 +284,48 @@
     }];
 }
 
+- (void)selectItemByIndex:(int)index {
+    [self.sectorHighlight removeFromSuperlayer];
+    
+    PNPieChartDataItem *currentItem = [self dataItemForIndex:index];
+    
+    CGFloat red,green,blue,alpha;
+    UIColor *old = currentItem.color;
+    [old getRed:&red green:&green blue:&blue alpha:&alpha];
+    alpha = 1;
+    UIColor *newColor = [UIColor colorWithRed:red green:green blue:blue alpha:alpha];
+    
+    CGFloat startPercentage = [self startPercentageForItemAtIndex:index];
+    CGFloat endPercentage   = [self endPercentageForItemAtIndex:index];
+    
+    self.sectorHighlight = [self newCircleLayerWithRadius:_outerCircleRadius
+                                              borderWidth:15
+                                                fillColor:[UIColor clearColor]
+                                              borderColor:newColor
+                                          startPercentage:startPercentage
+                                            endPercentage:endPercentage];
+    
+    if (self.enableMultipleSelection)
+    {
+        NSString *dictIndex = [NSString stringWithFormat:@"%d", index];
+        CAShapeLayer *indexShape = [self.selectedItems valueForKey:dictIndex];
+        if (indexShape)
+        {
+            [indexShape removeFromSuperlayer];
+            [self.selectedItems removeObjectForKey:dictIndex];
+        }
+        else
+        {
+            [self.selectedItems setObject:self.sectorHighlight forKey:dictIndex];
+            [_contentView.layer addSublayer:self.sectorHighlight];
+        }
+    }
+    else
+    {
+        [_contentView.layer addSublayer:self.sectorHighlight];
+    }
+}
+
 - (void)didTouchAt:(CGPoint)touchLocation
 {
     CGPoint circleCenter = CGPointMake(_contentView.bounds.size.width/2, _contentView.bounds.size.height/2);
@@ -325,43 +358,7 @@
                 [self.sectorHighlight removeFromSuperlayer];
         }
         
-        PNPieChartDataItem *currentItem = [self dataItemForIndex:index];
-        
-        CGFloat red,green,blue,alpha;
-        UIColor *old = currentItem.color;
-        [old getRed:&red green:&green blue:&blue alpha:&alpha];
-        alpha /= 2;
-        UIColor *newColor = [UIColor colorWithRed:red green:green blue:blue alpha:alpha];
-        
-        CGFloat startPercentage = [self startPercentageForItemAtIndex:index];
-        CGFloat endPercentage   = [self endPercentageForItemAtIndex:index];
-        
-        self.sectorHighlight = [self newCircleLayerWithRadius:_outerCircleRadius + 5
-                                                  borderWidth:10
-                                                    fillColor:[UIColor clearColor]
-                                                  borderColor:newColor
-                                              startPercentage:startPercentage
-                                                endPercentage:endPercentage];
-        
-        if (self.enableMultipleSelection)
-        {
-            NSString *dictIndex = [NSString stringWithFormat:@"%d", index];
-            CAShapeLayer *indexShape = [self.selectedItems valueForKey:dictIndex];
-            if (indexShape)
-            {
-                [indexShape removeFromSuperlayer];
-                [self.selectedItems removeObjectForKey:dictIndex];
-            }
-            else
-            {
-                [self.selectedItems setObject:self.sectorHighlight forKey:dictIndex];
-                [_contentView.layer addSublayer:self.sectorHighlight];
-            }
-        }
-        else
-        {
-            [_contentView.layer addSublayer:self.sectorHighlight];
-        }
+        [self selectItemByIndex:index];
     }
 }
 

@@ -14,6 +14,7 @@
 @interface PNPieChart : PNGenericChart
 
 - (id)initWithFrame:(CGRect)frame items:(NSArray *)items;
+- (void)selectItemByIndex:(int)index;
 
 @property (nonatomic, readonly) NSArray	*items;
 
