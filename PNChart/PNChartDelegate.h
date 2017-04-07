@@ -30,5 +30,4 @@
 
 - (void)userClickedOnPieIndexItem:(NSInteger)pieIndex;
 - (void)didUnselectPieItem;
-- (void)didFinishLoad;
 @end
