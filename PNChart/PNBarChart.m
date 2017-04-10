@@ -56,7 +56,7 @@
     _bars                = [NSMutableArray array];
     _xLabelSkip          = 1;
     _yLabelSum           = 4;
-    _labelMarginTop      = 2;
+    _labelMarginTop      = 0;
     _chartMarginLeft     = 25.0;
     _chartMarginRight    = 25.0;
     _chartMarginTop      = 25.0;
@@ -130,7 +130,7 @@
     
     [self addSubview:label];
       
-    label.frame = (CGRect){0, sectionHeight * i + _chartMarginTop - kYLabelHeight/2.0 + kXLabelHeight + _labelMarginTop, _yChartLabelWidth, kYLabelHeight};
+    label.frame = (CGRect){0, sectionHeight * i + _chartMarginTop - kYLabelHeight/2.0, _yChartLabelWidth, kYLabelHeight};
 
     [_yChartLabels addObject:label];
   }
@@ -187,7 +187,7 @@
                     labelXPosition = (index *  _xLabelWidth + _chartMarginLeft + _xLabelWidth /2.0 );
                 }
                 label.center = CGPointMake(labelXPosition,
-                                           self.frame.size.height - _chartMarginTop + label.frame.size.height /2.0 + _labelMarginTop);
+                                           self.frame.size.height - kXLabelHeight - _chartMarginTop + label.frame.size.height /2.0 + _labelMarginTop);
                 labelAddCount = 0;
 
                 [_xChartLabels addObject:label];
